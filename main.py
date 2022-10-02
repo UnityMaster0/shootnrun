@@ -21,6 +21,9 @@ class gameLoop:
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
+                if pg.key.get_pressed()[pg.K_ESCAPE]:
+                    pg.quit()
+                    sys.exit()
 
             self.screen.fill('darkgrey')
             self.arena.run()
