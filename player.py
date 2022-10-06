@@ -5,9 +5,9 @@ class Player(pg.sprite.Sprite):
 
     def __init__(self,pos,groups,barrier_sprites):
         super().__init__(groups)
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/player.png').convert_alpha()
+        self.image = pg.image.load('/Volumes/2025/ajmunc25/Documents/Personal-Projects/Downloads/ShootNRun-main/Resources/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
-
+        
         self.direction = pg.math.Vector2()
         self.speed = 5
 
@@ -25,8 +25,8 @@ class Player(pg.sprite.Sprite):
         elif pg.key.get_pressed()[pg.K_a]:
             self.direction.x = -1
         else:
-            self.direction.x = 0
-
+         self.direction.x = 0
+        
     def move(self,speed):
         self.rect.center += self.direction * speed
 

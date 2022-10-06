@@ -1,5 +1,6 @@
 import pygame as pg, sys
 from arena import Arena
+from player import Player
 
 #Sets FPS constant
 FPS = 60
@@ -28,6 +29,7 @@ class gameLoop:
             self.screen.fill('darkgrey')
             self.arena.run()
             pg.display.update()
+            print(Player.rect.y)
             self.clock.tick(FPS)
 
 #Starts game loop
