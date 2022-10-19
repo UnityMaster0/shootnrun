@@ -1,6 +1,5 @@
 from random import randint
 import sys
-from re import X
 import time
 import pygame as pg
 
@@ -33,23 +32,23 @@ class Wall(pg.sprite.Sprite):
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/wall.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/wall.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
 
+# Forcefield sprite
 class Forcefield(pg.sprite.Sprite):
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/force-field.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
-
 
 # Player sprite and movement controls
 class Player(pg.sprite.Sprite):
 
     def __init__(self, pos, enemy, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/player.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
         
         self.direction = pg.math.Vector2()
@@ -57,6 +56,7 @@ class Player(pg.sprite.Sprite):
 
         self.enemy = enemy
 
+# Movement inputs for the player
     def moveControl(self):
     
         if self.rect.y >= 64:
@@ -89,16 +89,17 @@ class Player(pg.sprite.Sprite):
             self.direction.x = 0
             self.rect.x = 254
         
-        
+# Math for position change
     def move(self,speed):
         self.rect.center += self.direction * speed
 
+# Collision with enemy ends the game
     def collide(self):
         if pg.sprite.spritecollideany(self, self.enemy) != None:
             pg.quit()
             sys.exit()
             
-    
+# Updates the player sprite
     def update(self, dt):
         self.moveControl()
         self.move(self.speed)
@@ -110,7 +111,7 @@ class Enemy(pg.sprite.Sprite):
 
     def __init__(self, pos, target,*groups):
         super().__init__(*groups)
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/enemy.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/enemy.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
 
         self.direction = pg.math.Vector2()
@@ -118,8 +119,8 @@ class Enemy(pg.sprite.Sprite):
 
         self.target = target
 
-    # Makes enemies follow the player
-    # Still need to fix               
+# Makes enemies follow the player
+            
     def update(self, dt):
         if self.target:
             self.direction = pg.math.Vector2(self.target.rect.center) - pg.math.Vector2(self.rect.center)
@@ -127,14 +128,13 @@ class Enemy(pg.sprite.Sprite):
                 self.direction.normalize_ip()
                 self.rect.center += (self.direction * self.speed)
 
-
 # Bullet class
 class Bullet(pg.sprite.Sprite):
 
     def __init__(self, pos, target, killing, *groups):
         super().__init__(*groups)
  
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/bullet.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/bullet.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
         self.image = pg.transform.scale(self.image, (8,8))
 
@@ -145,9 +145,11 @@ class Bullet(pg.sprite.Sprite):
         self.killing = killing
 
         self.direction = (self.target) - pg.math.Vector2(self.rect.center)
+
         if self.direction.length() > 0:
             self.direction.normalize_ip()
-    
+
+# Math for bullet position change  
     def update(self, dt):
         self.rect.center += (self.direction * self.speed)
         
@@ -159,13 +161,13 @@ class Bullet(pg.sprite.Sprite):
             pg.sprite.spritecollideany(self, self.killing).kill()
             self.kill()
 
-
+# Gernade sprite
 class Gernade(pg.sprite.Sprite):
 
     def __init__(self, pos, target, killing, *groups):
         super().__init__(*groups)
 
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/bullet.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/bullet.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
         self.image = pg.transform.scale(self.image, (16,16))
 
@@ -178,7 +180,8 @@ class Gernade(pg.sprite.Sprite):
         self.direction = (self.target) - pg.math.Vector2(self.rect.center)
         if self.direction.length() > 0:
             self.direction.normalize_ip()
-    
+
+# Updates gernade sprites
     def update(self, dt):
         self.rect.center += (self.direction * self.speed)
         
@@ -189,20 +192,6 @@ class Gernade(pg.sprite.Sprite):
         if pg.sprite.spritecollideany(self, self.killing) != None:
             pg.sprite.spritecollideany(self, self.killing).kill()
 
-
-class Ammobox(pg.sprite.Sprite):
-
-    def __init__(self, pos, count, *groups):
-        super().__init__(*groups)
-        self.image = pg.image.load('/home/adam/Programs/ShootnRun/Resources/ammobox.png').convert_alpha()
-        self.rect = self.image.get_rect(topleft = pos)
-
-        self.count = count
-
-    def pickup(self):
-        self.count = 200
-            
-
         
 # Creates game sprites and logic
 class Logic:
@@ -210,7 +199,7 @@ class Logic:
     def __init__(self):
         
         self.display_surface = pg.display.get_surface()
-
+# Creates sprite groups
         self.players = pg.sprite.Group()
         self.wall_group = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
@@ -224,7 +213,7 @@ class Logic:
         self.gernade_supply = 5 * 10
 
     
-    # Draws sprites
+# Draws sprites
     def makeSprites(self):
         self.player = Player((0,0), self.enemies ,self.players)
         for self.row_index,row in enumerate(WORLD):
@@ -246,35 +235,39 @@ class Logic:
                     for spwan_enemies in range(2,6):
                         Enemy((x,y), self.player, self.enemies)
 
+# Checks that the trigger button is pressed and does timing
     def trigger(self):
+
+        self.mouse_button = pg.mouse.get_pressed(num_buttons=3)
         
-        if self.mouse_button == (True, False, False):
+        if self.mouse_button == (True, False, False) or pg.key.get_pressed()[pg.K_SPACE] == True:
                 self.fire = pg.time.get_ticks()
                 self.ammo -= 1
-    
+                
+# Shoots a bullet
     def shoot(self):
 
         y = self.player.rect.y + 32
         x = self.player.rect.x + 32
-  
-        self.mouse_button = pg.mouse.get_pressed(num_buttons=3)
 
         try:
             if self.ammo >= 0:
                 self.trigger()
                 firing = pg.time.get_ticks() - self.fire
-                if firing > 0 and firing < 18:    
+                if firing > 0 and firing < 19:    
                     Bullet((x,y), pg.mouse.get_pos(), self.enemies, self.bullets)
 
         except:
             return
 
+# Checks that the throw gernade button is pressed and does timing
     def windup_throw(self):
         
         if self.mouse_button == (False, False, True):
                 self.throw = pg.time.get_ticks()
                 self.gernade_supply -= 1
-    
+
+# Throws the gernade
     def throw_gernade(self):
 
         y = self.player.rect.y + 32
@@ -292,6 +285,7 @@ class Logic:
         except:
             return
 
+# Creates new eneimes randomly at spawn points
     def respawn_enemies(self):
         x1 = 23 * 64
         x2 = 2 * 64
@@ -304,31 +298,22 @@ class Logic:
         if respawn == 5:
             Enemy((x2,y), self.player, self.enemies)
 
-    def spawn_ammo(self):
-
-        x = randint(4, 21) * 64
-        y = randint(2, 17) * 64
-
-        if self.mouse_button == (False, True, False):
-            Ammobox((x,y), self.ammo, self.ammobox)
-
-                        
+# Runs all game functions            
     def run(self, dt):
         self.shoot()
         self.throw_gernade()
         self.respawn_enemies()
-        self.spawn_ammo()
         self.players.update(dt)
         self.enemies.update(dt)
         self.bullets.update(dt)
+        self.gernade.update(dt)
         self.wall_group.draw(self.display_surface)
         self.players.draw(self.display_surface)
         self.enemies.draw(self.display_surface)
         self.bullets.draw(self.display_surface)
         self.gernade.draw(self.display_surface)
-        self.ammobox.draw(self.display_surface)
 
-FPS = 60
+#FPS = 60
 
 class gameContoller:
 
@@ -339,24 +324,30 @@ class gameContoller:
         pg.display.set_caption('ShootnRun')
         self.clock = pg.time.Clock()
         self.logic = Logic()
+        self.start_time = time.time()
+        self.fps = 60
 
+# Runs the game
     def run(self):
         while True:
-            dt = self.clock.tick(FPS)
+            dt = self.clock.tick(self.fps)
             for event in pg.event.get():
-                if event.type == pg.QUIT:
+                if event.type == pg.QUIT or pg.key.get_pressed()[pg.K_ESCAPE]:
+                    print('YOUR SURVIVED FOR ', end_time - self.start_time, 'SECONDS')
                     pg.quit()
                     sys.exit()
-                if pg.key.get_pressed()[pg.K_ESCAPE]:
-                    pg.quit()
-                    sys.exit()
-            
+                     
             self.screen.fill('darkgrey')
             self.logic.run(dt)
+            if pg.key.get_pressed()[pg.K_LSHIFT]:
+                self.fps = 20
+            else: self.fps = 60
+            end_time = time.time()
             pg.display.update()
 
+# Asks for diffculty level input and sets difficulty variables
 global diff_spawn, max_speed, min_speed
-diff_input = int(input('Set diffculty: '))
+diff_input = int(input('Set diffculty(1-3): '))
 
 if diff_input == 1:
     diff_spawn = 80
