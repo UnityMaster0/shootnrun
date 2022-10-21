@@ -2,6 +2,7 @@ from random import randint
 import sys
 import time
 import pygame as pg
+import os
 
 #Sets size of each string
 TILE = 64
@@ -96,6 +97,7 @@ class Player(pg.sprite.Sprite):
 # Collision with enemy ends the game
     def collide(self):
         if pg.sprite.spritecollideany(self, self.enemy) != None:
+            print('YOU SURVIVED FOR ', end_time - start_time, 'SECONDS')
             pg.quit()
             sys.exit()
             
@@ -161,8 +163,8 @@ class Bullet(pg.sprite.Sprite):
             pg.sprite.spritecollideany(self, self.killing).kill()
             self.kill()
 
-# Gernade sprite
-class Gernade(pg.sprite.Sprite):
+# Rocket sprite
+class Rocket(pg.sprite.Sprite):
 
     def __init__(self, pos, target, killing, *groups):
         super().__init__(*groups)
@@ -181,7 +183,7 @@ class Gernade(pg.sprite.Sprite):
         if self.direction.length() > 0:
             self.direction.normalize_ip()
 
-# Updates gernade sprites
+# Updates Rocket sprites
     def update(self, dt):
         self.rect.center += (self.direction * self.speed)
         
@@ -204,13 +206,13 @@ class Logic:
         self.wall_group = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
-        self.gernade = pg.sprite.Group()
+        self.Rocket = pg.sprite.Group()
         self.ammobox = pg.sprite.Group()
 
         self.makeSprites()
 
         self.ammo = 100 * 10
-        self.gernade_supply = 5 * 10
+        self.Rocket_supply = 5 * 10
 
     
 # Draws sprites
@@ -260,15 +262,15 @@ class Logic:
         except:
             return
 
-# Checks that the throw gernade button is pressed and does timing
+# Checks that the throw Rocket button is pressed and does timing
     def windup_throw(self):
         
         if self.mouse_button == (False, False, True):
                 self.throw = pg.time.get_ticks()
-                self.gernade_supply -= 1
+                self.Rocket_supply -= 1
 
-# Throws the gernade
-    def throw_gernade(self):
+# Throws the Rocket
+    def throw_Rocket(self):
 
         y = self.player.rect.y + 32
         x = self.player.rect.x + 32
@@ -276,11 +278,11 @@ class Logic:
         self.mouse_button = pg.mouse.get_pressed(num_buttons=3)
 
         try:
-            if self.gernade_supply >= 0:
+            if self.Rocket_supply >= 0:
                 self.windup_throw()
                 throwing = pg.time.get_ticks() - self.throw
                 if throwing > 0 and throwing < 18:    
-                    Gernade((x,y), pg.mouse.get_pos(), self.enemies, self.gernade)
+                    Rocket((x,y), pg.mouse.get_pos(), self.enemies, self.Rocket)
 
         except:
             return
@@ -301,17 +303,17 @@ class Logic:
 # Runs all game functions            
     def run(self, dt):
         self.shoot()
-        self.throw_gernade()
+        self.throw_Rocket()
         self.respawn_enemies()
         self.players.update(dt)
         self.enemies.update(dt)
         self.bullets.update(dt)
-        self.gernade.update(dt)
+        self.Rocket.update(dt)
         self.wall_group.draw(self.display_surface)
         self.players.draw(self.display_surface)
         self.enemies.draw(self.display_surface)
         self.bullets.draw(self.display_surface)
-        self.gernade.draw(self.display_surface)
+        self.Rocket.draw(self.display_surface)
 
 #FPS = 60
 
@@ -324,16 +326,18 @@ class gameContoller:
         pg.display.set_caption('ShootnRun')
         self.clock = pg.time.Clock()
         self.logic = Logic()
-        self.start_time = time.time()
+        global start_time
+        start_time = time.time()
         self.fps = 60
 
 # Runs the game
     def run(self):
+        global end_time
         while True:
             dt = self.clock.tick(self.fps)
             for event in pg.event.get():
                 if event.type == pg.QUIT or pg.key.get_pressed()[pg.K_ESCAPE]:
-                    print('YOUR SURVIVED FOR ', end_time - self.start_time, 'SECONDS')
+                    print('YOU SURVIVED FOR ', end_time - start_time, 'SECONDS')
                     pg.quit()
                     sys.exit()
                      
@@ -344,6 +348,10 @@ class gameContoller:
             else: self.fps = 60
             end_time = time.time()
             pg.display.update()
+
+# Show Game Rules
+os.system("clear")
+print('Welcome to ShootNRun, the ultimate shoot and run experience. To play set your difficuly below, use WASD controls to move (W - up, S - down. A - left, D - right), and press space or left click on your mouse to fire. Rockets can be fired with mouse rigt click. Hold shift for slow motion to avoid eneimes, but you can not attack in this mode. Try to survive as long as possible, but be careful you have limited ammo and Rockets. Please enjoy and thank you for playing ShootNRun!')
 
 # Asks for diffculty level input and sets difficulty variables
 global diff_spawn, max_speed, min_speed
