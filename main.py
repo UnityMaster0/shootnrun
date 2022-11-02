@@ -1,32 +1,32 @@
 from random import randint
 import sys
-import time
 import pygame as pg
 import os
+from worlddata import LEVELONE, TILE
 
-#Sets size of each string
-TILE = 64
+levelchoice = 1
 
-#Creates starting placement of sprites
-WORLD = [
-[' ',' ',' ','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x',' ',' ',' '],
-[' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x',' ',' ',' '],
-[' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x',' ',' ',' '],
-[' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x',' ',' ',' '],
-['x','x','x','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x','x','x','x'],
-['x',' ',' ','z',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','z',' ',' ','x'],
-['x',' ',' ','z',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','z',' ',' ','x'],
-['x',' ','e','z',' ',' ',' ',' ',' ',' ',' ',' ','p',' ',' ',' ',' ',' ',' ',' ',' ',' ','z','e',' ','x'],
-['x',' ',' ','z',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','z',' ',' ','x'],
-['x',' ',' ','z',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','z',' ',' ','x'],
-['x','x','x','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x','x','x','x'],
-[' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x',' ',' ',' '],
-[' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x',' ',' ',' '],
-[' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x',' ',' ',' '],
-[' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','x',' ',' ',' '],
-[' ',' ',' ','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x',' ',' ',' ']
-]
+# Show Game Rules
+os.system("clear")
+print('Welcome to ShootNRun, the ultimate shoot and run experience. To play set your difficuly below, use WASD controls to move (W - up, S - down. A - left, D - right), and press space or left click on your mouse to fire. Rockets can be fired with mouse right click. Hold shift for slow motion to avoid eneimes, but you can not attack in this mode. Try to survive as long as possible, but be careful you have limited ammo and Rockets. Please enjoy and thank you for playing ShootNRun!')
+# Asks for diffculty level input and sets difficulty variables
+global diff_spawn, max_speed, min_speed
+diff_input = int(levelchoice)
 
+if diff_input == 1:
+    diff_spawn = 80
+    max_speed = 4
+    min_speed = 2
+
+if diff_input == 2:
+    diff_spawn = 40
+    max_speed = 5
+    min_speed = 3
+
+if diff_input == 3:
+    diff_spawn = 30
+    max_speed = 7
+    min_speed = 4
 
 # Wall sprite
 class Wall(pg.sprite.Sprite):
@@ -97,12 +97,11 @@ class Player(pg.sprite.Sprite):
 # Collision with enemy ends the game
     def collide(self):
         if pg.sprite.spritecollideany(self, self.enemy) != None:
-            print('YOU SURVIVED FOR ', end_time - start_time, 'SECONDS')
             pg.quit()
             sys.exit()
             
 # Updates the player sprite
-    def update(self, dt):
+    def update(self):
         self.moveControl()
         self.move(self.speed)
         self.collide()
@@ -123,7 +122,7 @@ class Enemy(pg.sprite.Sprite):
 
 # Makes enemies follow the player
             
-    def update(self, dt):
+    def update(self):
         if self.target:
             self.direction = pg.math.Vector2(self.target.rect.center) - pg.math.Vector2(self.rect.center)
             if self.direction.length() > 0:
@@ -152,7 +151,7 @@ class Bullet(pg.sprite.Sprite):
             self.direction.normalize_ip()
 
 # Math for bullet position change  
-    def update(self, dt):
+    def update(self):
         self.rect.center += (self.direction * self.speed)
         
         v = self.initial_pos - pg.math.Vector2(self.rect.center)
@@ -184,7 +183,7 @@ class Rocket(pg.sprite.Sprite):
             self.direction.normalize_ip()
 
 # Updates Rocket sprites
-    def update(self, dt):
+    def update(self):
         self.rect.center += (self.direction * self.speed)
         
         v = self.initial_pos - pg.math.Vector2(self.rect.center)
@@ -196,7 +195,7 @@ class Rocket(pg.sprite.Sprite):
 
         
 # Creates game sprites and logic
-class Logic:
+class LevelOneLogic:
     
     def __init__(self):
         
@@ -218,7 +217,7 @@ class Logic:
 # Draws sprites
     def makeSprites(self):
         self.player = Player((0,0), self.enemies ,self.players)
-        for self.row_index,row in enumerate(WORLD):
+        for self.row_index,row in enumerate(LEVELONE):
             for self.col_index,col in enumerate(row):
                 x = self.col_index * TILE
                 y = self.row_index * TILE
@@ -301,78 +300,16 @@ class Logic:
             Enemy((x2,y), self.player, self.enemies)
 
 # Runs all game functions            
-    def run(self, dt):
+    def run(self):
         self.shoot()
         self.throw_Rocket()
         self.respawn_enemies()
-        self.players.update(dt)
-        self.enemies.update(dt)
-        self.bullets.update(dt)
-        self.Rocket.update(dt)
+        self.players.update()
+        self.enemies.update()
+        self.bullets.update()
+        self.Rocket.update()
         self.wall_group.draw(self.display_surface)
         self.players.draw(self.display_surface)
         self.enemies.draw(self.display_surface)
         self.bullets.draw(self.display_surface)
         self.Rocket.draw(self.display_surface)
-
-#FPS = 60
-
-class gameContoller:
-
-    def __init__(self):
-        
-        pg.init()
-        self.screen = pg.display.set_mode((1680, 1080))
-        pg.display.set_caption('ShootnRun')
-        self.clock = pg.time.Clock()
-        self.logic = Logic()
-        global start_time
-        start_time = time.time()
-        self.fps = 60
-
-# Runs the game
-    def run(self):
-        global end_time
-        while True:
-            dt = self.clock.tick(self.fps)
-            for event in pg.event.get():
-                if event.type == pg.QUIT or pg.key.get_pressed()[pg.K_ESCAPE]:
-                    print('YOU SURVIVED FOR ', end_time - start_time, 'SECONDS')
-                    pg.quit()
-                    sys.exit()
-                     
-            self.screen.fill('darkgrey')
-            self.logic.run(dt)
-            if pg.key.get_pressed()[pg.K_LSHIFT]:
-                self.fps = 20
-            else: self.fps = 60
-            end_time = time.time()
-            pg.display.update()
-
-# Show Game Rules
-os.system("clear")
-print('Welcome to ShootNRun, the ultimate shoot and run experience. To play set your difficuly below, use WASD controls to move (W - up, S - down. A - left, D - right), and press space or left click on your mouse to fire. Rockets can be fired with mouse rigt click. Hold shift for slow motion to avoid eneimes, but you can not attack in this mode. Try to survive as long as possible, but be careful you have limited ammo and Rockets. Please enjoy and thank you for playing ShootNRun!')
-
-# Asks for diffculty level input and sets difficulty variables
-global diff_spawn, max_speed, min_speed
-diff_input = int(input('Set diffculty(1-3): '))
-
-if diff_input == 1:
-    diff_spawn = 80
-    max_speed = 4
-    min_speed = 2
-
-if diff_input == 2:
-    diff_spawn = 40
-    max_speed = 5
-    min_speed = 3
-
-if diff_input == 3:
-    diff_spawn = 30
-    max_speed = 7
-    min_speed = 4
-
-#Starts game loop
-if __name__ == '__main__':
-    game = gameContoller()
-    game.run()
