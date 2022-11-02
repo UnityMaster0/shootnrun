@@ -13,21 +13,21 @@ class Wall(pg.sprite.Sprite):
 # Portal to level sprite
 class Portal(pg.sprite.Sprite):
 
-    def __init__(self, pos, teleporty, *groups):
+    def __init__(self, pos, player, *groups):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
         self.image = pg.transform.scale(self.image, (200,100))
 
-        self.player = teleporty
+        self.player = player
 
-    def transport(self):
+    def levelChange(self):
         if pg.sprite.spritecollideany(self, self.player) != None:
             level = '1'
             print(level)
     
     def update(self):
-        transports()
+        levelChange()
 
 
 # Player sprite and movement controls
@@ -75,6 +75,7 @@ class BaseLogic():
 # Creates sprite groups
         self.players = pg.sprite.Group()
         self.wall_group = pg.sprite.Group()
+        self.portal_group = pg.sprite.Group()
 
         self.makeSprites()
 
@@ -88,7 +89,7 @@ class BaseLogic():
                     Wall((x,y), self.wall_group)
 
                 if col == 'z':
-                    Portal((x,y), self.player, self.wall_group)
+                    Portal((x,y), self.player, self.portal_group)
 
                 if col == 'p':
                     self.player.rect.x = x
@@ -124,5 +125,7 @@ class BaseLogic():
         self.players.update()
         self.scroll()
         self.wall_group.update()
+        self.portal_group.update()
         self.players.draw(self.display_surface)
         self.wall_group.draw(self.display_surface)
+        self.portal_group.draw(self.display_surface)
