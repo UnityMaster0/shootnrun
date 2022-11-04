@@ -1,4 +1,3 @@
-from asyncio import transports
 from random import randint
 import pygame as pg
 from worlddata import BASE, TILE
@@ -20,14 +19,6 @@ class Portal(pg.sprite.Sprite):
         self.image = pg.transform.scale(self.image, (200,100))
 
         self.player = player
-
-    def levelChange(self):
-        if pg.sprite.spritecollideany(self, self.player) != None:
-            level = '1'
-            print(level)
-    
-    def update(self):
-        levelChange()
 
 
 # Player sprite and movement controls
@@ -88,8 +79,14 @@ class BaseLogic():
                 if col == 'x':
                     Wall((x,y), self.wall_group)
 
-                if col == 'z':
-                    Portal((x,y), self.player, self.portal_group)
+                if col == '1':
+                    self.toLevelOne = Portal((x,y), self.players, self.portal_group)
+
+                if col == '2':
+                    self.toLevelTwo = Portal((x,y), self.players, self.portal_group)
+
+                if col == '3':
+                    self.toLevelThree = Portal((x,y), self.players, self.portal_group)
 
                 if col == 'p':
                     self.player.rect.x = x
@@ -97,30 +94,38 @@ class BaseLogic():
 
     def scroll(self):
 
-        if self.player.rect.x >= 1000:
-            scroll = self.player.rect.x - 1000
-            self.player.rect.x = 1000
-            for p in self.wall_group:
+        if self.player.rect.x >= 1500:
+            scroll = self.player.rect.x - 1500
+            self.player.rect.x = 1500
+            for w in self.wall_group:
+                w.rect.x -= scroll
+            for p in self.portal_group:
                 p.rect.x -= scroll
 
-        if self.player.rect.x <= 10:
-            scroll = 10 - self.player.rect.x
-            self.player.rect.x = 10
-            for p in self.wall_group:
+        if self.player.rect.x <= 100:
+            scroll = 100 - self.player.rect.x
+            self.player.rect.x = 100
+            for w in self.wall_group:
+                w.rect.x += scroll
+            for p in self.portal_group:
                 p.rect.x += scroll
 
         if self.player.rect.y >= 800:
             scroll = self.player.rect.y - 800
             self.player.rect.y = 800
-            for p in self.wall_group:
+            for w in self.wall_group:
+                w.rect.y -= scroll
+            for p in self.portal_group:
                 p.rect.y -= scroll
 
-        if self.player.rect.y <= 10:
-            scroll = 10 - self.player.rect.y
-            self.player.rect.y = 10
-            for p in self.wall_group:
+        if self.player.rect.y <= 100:
+            scroll = 100 - self.player.rect.y
+            self.player.rect.y = 100
+            for w in self.wall_group:
+                w.rect.y += scroll
+            for p in self.portal_group:
                 p.rect.y += scroll
-
+                
     def run(self):
         self.players.update()
         self.scroll()
@@ -129,3 +134,16 @@ class BaseLogic():
         self.players.draw(self.display_surface)
         self.wall_group.draw(self.display_surface)
         self.portal_group.draw(self.display_surface)
+
+    def levelSetOne(self):
+        if pg.sprite.spritecollideany(self.toLevelOne, self.players):
+            return True
+    
+    def levelSetTwo(self):
+        if pg.sprite.spritecollideany(self.toLevelTwo, self.players):
+            return True
+
+    def levelSetThree(self):
+        if pg.sprite.spritecollideany(self.toLevelThree, self.players):
+            return True
+            
