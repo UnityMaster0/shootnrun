@@ -63,7 +63,7 @@ class BaseLogic():
     def __init__(self):
         
         self.display_surface = pg.display.get_surface()
-# Creates sprite groups
+    # Creates sprite groups
         self.players = pg.sprite.Group()
         self.wall_group = pg.sprite.Group()
         self.portal_group = pg.sprite.Group()
@@ -135,6 +135,10 @@ class BaseLogic():
         self.wall_group.draw(self.display_surface)
         self.portal_group.draw(self.display_surface)
 
+    '''Each of the setLevel... functions take a post condition of self and reutrn a posts condition of True.
+    These functions check if the player is colliding with the one of the portals. Based on the portal that is collided with the function will return True respectivly
+    The post conditon functions are used in gameloop.py to change the level that is loaded.'''
+
     def levelSetOne(self):
         if pg.sprite.spritecollideany(self.toLevelOne, self.players):
             return True
@@ -145,5 +149,4 @@ class BaseLogic():
 
     def levelSetThree(self):
         if pg.sprite.spritecollideany(self.toLevelThree, self.players):
-            return True
-            
+            return True      
