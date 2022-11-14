@@ -1,6 +1,9 @@
 from random import randint
+
 import pygame as pg
+
 from worlddata import BASE, TILE
+
 
 class Wall(pg.sprite.Sprite):
 
@@ -24,7 +27,7 @@ class Portal(pg.sprite.Sprite):
 # Player sprite and movement controls
 class Player(pg.sprite.Sprite):
 
-    def __init__(self, pos, *groups):
+    def __init__(self, pos, wall, *groups):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
@@ -32,22 +35,34 @@ class Player(pg.sprite.Sprite):
         self.direction = pg.math.Vector2()
         self.speed = 5
 
+        self.wall = wall 
+
 # Movement inputs for the player
     def moveControl(self):
         
-        if pg.key.get_pressed()[pg.K_w]:
-            self.direction.y = -1
-        elif pg.key.get_pressed()[pg.K_s]:
-            self.direction.y = 1
-        else:
-            self.direction.y = 0
+        if pg.sprite.spritecollideany(self, self.wall) == None:
+            self.bounce = 0.01
 
-        if pg.key.get_pressed()[pg.K_d]:
-            self.direction.x = 1
-        elif pg.key.get_pressed()[pg.K_a]:
-            self.direction.x = -1
+        if pg.sprite.spritecollideany(self, self.wall) == None:
+            if pg.key.get_pressed()[pg.K_w]:
+                self.direction.y = -1
+            elif pg.key.get_pressed()[pg.K_s]:
+                self.direction.y = 1
+            else:
+                self.direction.y = 0
+        
+            if pg.key.get_pressed()[pg.K_d]:
+                self.direction.x = 1
+            elif pg.key.get_pressed()[pg.K_a]:
+                self.direction.x = -1
+            else:
+                self.direction.x = 0
+
         else:
-            self.direction.x = 0
+            for b in range(0, 200):
+                self.bounce ** 0.9
+                self.direction.x += self.bounce
+                print(self.bounce)
         
 # Math for position change
     def move(self,speed):
@@ -71,7 +86,7 @@ class BaseLogic():
         self.makeSprites()
 
     def makeSprites(self):
-        self.player = Player((0,0), self.players)
+        self.player = Player((0,0), self.wall_group, self.players)
         for self.row_index,row in enumerate(BASE):
             for self.col_index,col in enumerate(row):
                 x = self.col_index * TILE
