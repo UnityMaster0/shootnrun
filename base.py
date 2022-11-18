@@ -41,9 +41,6 @@ class Player(pg.sprite.Sprite):
     def moveControl(self):
         
         if pg.sprite.spritecollideany(self, self.wall) == None:
-            self.bounce = 0.01
-
-        if pg.sprite.spritecollideany(self, self.wall) == None:
             if pg.key.get_pressed()[pg.K_w]:
                 self.direction.y = -1
             elif pg.key.get_pressed()[pg.K_s]:
@@ -59,10 +56,19 @@ class Player(pg.sprite.Sprite):
                 self.direction.x = 0
 
         else:
-            for b in range(0, 200):
-                self.bounce ** 0.9
-                self.direction.x += self.bounce
-                print(self.bounce)
+            if pg.key.get_pressed()[pg.K_w]:
+                self.direction.y = 1
+            elif pg.key.get_pressed()[pg.K_s]:
+                self.direction.y = -1
+            else:
+                self.direction.y = 0
+                
+            if pg.key.get_pressed()[pg.K_d]:
+                self.direction.x = -1
+            elif pg.key.get_pressed()[pg.K_a]:
+                self.direction.x = 1
+            else:
+                self.direction.x = 0
         
 # Math for position change
     def move(self,speed):
