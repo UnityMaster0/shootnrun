@@ -35,41 +35,53 @@ class Player(pg.sprite.Sprite):
         self.direction = pg.math.Vector2()
         self.speed = 5
 
-        self.wall = wall 
+        self.wall = wall
+        self.locked = False
 
 # Movement inputs for the player
     def moveControl(self):
-        
-        if pg.sprite.spritecollideany(self, self.wall) == None:
-            if pg.key.get_pressed()[pg.K_w]:
-                self.direction.y = -1
-            elif pg.key.get_pressed()[pg.K_s]:
-                self.direction.y = 1
-            else:
-                self.direction.y = 0
-        
-            if pg.key.get_pressed()[pg.K_d]:
-                self.direction.x = 1
-            elif pg.key.get_pressed()[pg.K_a]:
-                self.direction.x = -1
-            else:
-                self.direction.x = 0
 
-        else:
-            if pg.key.get_pressed()[pg.K_w]:
-                self.direction.y = 1
-            elif pg.key.get_pressed()[pg.K_s]:
-                self.direction.y = -1
-            else:
-                self.direction.y = 0
-                
-            if pg.key.get_pressed()[pg.K_d]:
-                self.direction.x = -1
-            elif pg.key.get_pressed()[pg.K_a]:
-                self.direction.x = 1
-            else:
-                self.direction.x = 0
         
+        if pg.key.get_pressed()[pg.K_w]:
+            self.direction.y = -1
+        elif pg.key.get_pressed()[pg.K_s]:
+            self.direction.y = 1
+        else:
+            self.direction.y = 0
+        
+        if pg.key.get_pressed()[pg.K_d]:
+            self.direction.x = 1
+        elif pg.key.get_pressed()[pg.K_a]:
+            self.direction.x = -1
+        else:
+            self.direction.x = 0
+
+        if self.locked_w == False and pg.key.get_pressed()[pg.K_w] and pg.sprite.spritecollideany(self, self.wall) != None:
+            self.locked_w = True
+            self.direction.y = 0
+        elif self.locked_w == False:
+
+        if self.locked_s == False and pg.key.get_pressed()[pg.K_s] and pg.sprite.spritecollideany(self, self.wall) != None:
+            self.locked_s = True
+            self.direction.y = 0
+        elif self.locked_s == False:
+
+
+        if self.locked_s == False and pg.key.get_pressed()[pg.K_a] and pg.sprite.spritecollideany(self, self.wall) != None:
+            self.locked_s = True
+            self.direction.x = 0
+        elif self.locked_s == False:
+
+        if self.locked_a == False and pg.key.get_pressed()[pg.K_d] and pg.sprite.spritecollideany(self, self.wall) != None:
+            self.locked_a = True
+            self.direction.x = 0
+        elif self.locked_w == False:
+
+        if pg.sprite.spritecollideany(self, self.wall) == None:
+            self.locked = False
+
+
+
 # Math for position change
     def move(self,speed):
         self.rect.center += self.direction * speed
@@ -84,7 +96,7 @@ class BaseLogic():
     def __init__(self):
         
         self.display_surface = pg.display.get_surface()
-    # Creates sprite groups
+# Creates sprite groups
         self.players = pg.sprite.Group()
         self.wall_group = pg.sprite.Group()
         self.portal_group = pg.sprite.Group()
@@ -170,4 +182,4 @@ class BaseLogic():
 
     def levelSetThree(self):
         if pg.sprite.spritecollideany(self.toLevelThree, self.players):
-            return True      
+            return True   
