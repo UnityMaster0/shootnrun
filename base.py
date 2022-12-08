@@ -36,6 +36,7 @@ class Player(pg.sprite.Sprite):
         self.speed = 5
 
         self.wall = wall
+
         self.locked_w = False
         self.locked_s = False
         self.locked_a = False
@@ -97,6 +98,7 @@ class Player(pg.sprite.Sprite):
                 self.direction.x = -1
             else:
                 self.direction.x = 0
+
 
 
 # Math for position change

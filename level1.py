@@ -115,7 +115,7 @@ class Player(pg.sprite.Sprite):
             elif pg.key.get_pressed()[pg.K_a] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.x = -1
             else:
-                self.direction.x = 0
+                self.direction.x = 0       
         
 # Math for position change
     def move(self,speed):
