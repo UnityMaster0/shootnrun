@@ -1,7 +1,9 @@
-from random import randint
-import sys
-import pygame as pg
 import os
+import sys
+from random import randint
+
+import pygame as pg
+
 from worlddata import LEVELTWO, TILE
 
 levelchoice = 2
@@ -47,7 +49,7 @@ class Forcefield(pg.sprite.Sprite):
 # Player sprite and movement controls
 class Player(pg.sprite.Sprite):
 
-    def __init__(self, pos, enemy, *groups):
+    def __init__(self, pos, enemy, wall, *groups):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
@@ -56,39 +58,64 @@ class Player(pg.sprite.Sprite):
         self.speed = 5
 
         self.enemy = enemy
+        self.wall = wall
 
 # Movement inputs for the player
     def moveControl(self):
     
-        if self.rect.y >= -10000:
-            if self.rect.y <= 10000:
-                if pg.key.get_pressed()[pg.K_w]:
-                    self.direction.y = -1
-                elif pg.key.get_pressed()[pg.K_s]:
-                    self.direction.y = 1
-                else:
-                    self.direction.y = 0
+        if pg.sprite.spritecollideany(self, self.wall) != None:
+
+            if self.locked_s == False and pg.key.get_pressed()[pg.K_w] == True:
+                self.locked_w = True
+                self.direction.y = 0
+            elif self.locked_w == False and pg.key.get_pressed()[pg.K_w] == True:
+                self.direction.y = -1
+            elif self.locked_w == True and pg.key.get_pressed()[pg.K_w] == True:
+                self.direction.y = 0
+
+            if self.locked_w == False and pg.key.get_pressed()[pg.K_s] == True:
+                self.locked_s = True
+                self.direction.y = 0
+            elif self.locked_s == False and pg.key.get_pressed()[pg.K_s] == True:
+                self.direction.y = 1
+            elif self.locked_s == True and pg.key.get_pressed()[pg.K_s] == True:
+                self.direction.y = 0
+
+            if self.locked_d == False and pg.key.get_pressed()[pg.K_a] == True:
+                self.locked_a = True
+                self.direction.x = 0
+            elif self.locked_a == False and pg.key.get_pressed()[pg.K_a] == True:
+                self.direction.x = -1
+            elif self.locked_a == True and pg.key.get_pressed()[pg.K_a] == True:
+                self.direction.x = 0
+
+            if self.locked_a == False and pg.key.get_pressed()[pg.K_d] == True and pg.sprite.spritecollideany(self, self.wall) != None:
+                self.locked_d = True
+                self.direction.x = 0
+            elif self.locked_d == False and pg.key.get_pressed()[pg.K_d] == True:
+                self.direction.x = 1
+            elif self.locked_d == True and pg.key.get_pressed()[pg.K_d] == True:
+                self.direction.x = 0
+
+        else:
+            self.locked_w = False
+            self.locked_s = False
+            self.locked_a = False
+            self.locked_d = False
+
+            if pg.key.get_pressed()[pg.K_w] == True and pg.sprite.spritecollideany(self, self.wall) == None:
+                self.direction.y = -1
+            elif pg.key.get_pressed()[pg.K_s] == True and pg.sprite.spritecollideany(self, self.wall) == None:
+                self.direction.y = 1
             else:
                 self.direction.y = 0
-                self.rect.y = 896
-        else:
-            self.direction.y = 0
-            self.rect.y = 64
-
-        if self.rect.x >= -10000:
-            if self.rect.x <= 10000:
-                if pg.key.get_pressed()[pg.K_d]:
-                    self.direction.x = 1
-                elif pg.key.get_pressed()[pg.K_a]:
-                    self.direction.x = -1
-                else:
-                    self.direction.x = 0
+        
+            if pg.key.get_pressed()[pg.K_d] == True and pg.sprite.spritecollideany(self, self.wall) == None:
+                self.direction.x = 1
+            elif pg.key.get_pressed()[pg.K_a] == True and pg.sprite.spritecollideany(self, self.wall) == None:
+                self.direction.x = -1
             else:
                 self.direction.x = 0
-                self.rect.x = 1344
-        else:
-            self.direction.x = 0
-            self.rect.x = 254
         
 # Math for position change
     def move(self,speed):
@@ -216,7 +243,7 @@ class LevelTwoLogic:
     
 # Draws sprites
     def makeSprites(self):
-        self.player = Player((0,0), self.enemies ,self.players)
+        self.player = Player((0,0), self.enemies, self.wall_group, self.players)
         for self.row_index,row in enumerate(LEVELTWO):
             for self.col_index,col in enumerate(row):
                 x = self.col_index * TILE

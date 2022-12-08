@@ -36,54 +36,73 @@ class Player(pg.sprite.Sprite):
         self.speed = 5
 
         self.wall = wall
-        self.locked = False
+
+        self.locked_w = False
+        self.locked_s = False
+        self.locked_a = False
+        self.locked_d = False
 
 # Movement inputs for the player
     def moveControl(self):
 
-        
-        if pg.key.get_pressed()[pg.K_w]:
-            self.direction.y = -1
-        elif pg.key.get_pressed()[pg.K_s]:
-            self.direction.y = 1
+        if pg.sprite.spritecollideany(self, self.wall) != None:
+
+            if self.locked_s == False and pg.key.get_pressed()[pg.K_w] == True:
+                self.locked_w = True
+                self.direction.y = 0
+            elif self.locked_w == False and pg.key.get_pressed()[pg.K_w] == True:
+                self.direction.y = -1
+            elif self.locked_w == True and pg.key.get_pressed()[pg.K_w] == True:
+                self.direction.y = 0
+
+            if self.locked_w == False and pg.key.get_pressed()[pg.K_s] == True:
+                self.locked_s = True
+                self.direction.y = 0
+            elif self.locked_s == False and pg.key.get_pressed()[pg.K_s] == True:
+                self.direction.y = 1
+            elif self.locked_s == True and pg.key.get_pressed()[pg.K_s] == True:
+                self.direction.y = 0
+
+            if self.locked_d == False and pg.key.get_pressed()[pg.K_a] == True:
+                self.locked_a = True
+                self.direction.x = 0
+            elif self.locked_a == False and pg.key.get_pressed()[pg.K_a] == True:
+                self.direction.x = -1
+            elif self.locked_a == True and pg.key.get_pressed()[pg.K_a] == True:
+                self.direction.x = 0
+
+            if self.locked_a == False and pg.key.get_pressed()[pg.K_d] == True:
+                self.locked_d = True
+                self.direction.x = 0
+            elif self.locked_d == False and pg.key.get_pressed()[pg.K_d] == True:
+                self.direction.x = 1
+            elif self.locked_d == True and pg.key.get_pressed()[pg.K_d] == True:
+                self.direction.x = 0
+
         else:
-            self.direction.y = 0
+            self.locked_w = False
+            self.locked_s = False
+            self.locked_a = False
+            self.locked_d = False
+
+            if pg.key.get_pressed()[pg.K_w] == True:
+                self.direction.y = -1
+            elif pg.key.get_pressed()[pg.K_s] == True:
+                self.direction.y = 1
+            else:
+                self.direction.y = 0
         
-        if pg.key.get_pressed()[pg.K_d]:
-            self.direction.x = 1
-        elif pg.key.get_pressed()[pg.K_a]:
-            self.direction.x = -1
-        else:
-            self.direction.x = 0
-
-        if self.locked_w == False and pg.key.get_pressed()[pg.K_w] and pg.sprite.spritecollideany(self, self.wall) != None:
-            self.locked_w = True
-            self.direction.y = 0
-        elif self.locked_w == False:
-
-        if self.locked_s == False and pg.key.get_pressed()[pg.K_s] and pg.sprite.spritecollideany(self, self.wall) != None:
-            self.locked_s = True
-            self.direction.y = 0
-        elif self.locked_s == False:
-
-
-        if self.locked_s == False and pg.key.get_pressed()[pg.K_a] and pg.sprite.spritecollideany(self, self.wall) != None:
-            self.locked_s = True
-            self.direction.x = 0
-        elif self.locked_s == False:
-
-        if self.locked_a == False and pg.key.get_pressed()[pg.K_d] and pg.sprite.spritecollideany(self, self.wall) != None:
-            self.locked_a = True
-            self.direction.x = 0
-        elif self.locked_w == False:
-
-        if pg.sprite.spritecollideany(self, self.wall) == None:
-            self.locked = False
+            if pg.key.get_pressed()[pg.K_d] == True:
+                self.direction.x = 1
+            elif pg.key.get_pressed()[pg.K_a] == True:
+                self.direction.x = -1
+            else:
+                self.direction.x = 0
 
 
 
 # Math for position change
-    def move(self,speed):
+    def move(self, speed):
         self.rect.center += self.direction * speed
             
 # Updates the player sprite
@@ -182,4 +201,4 @@ class BaseLogic():
 
     def levelSetThree(self):
         if pg.sprite.spritecollideany(self.toLevelThree, self.players):
-            return True   
+            return True      

@@ -1,10 +1,11 @@
-import pygame as pg
-import time
 import sys
+import time
+import pygame as pg
+
+from base import BaseLogic
 from level1 import LevelOneLogic
 from level2 import LevelTwoLogic
 from level3 import LevelThreeLogic
-from base import BaseLogic
 
 #FPS = 60
 
@@ -16,6 +17,7 @@ class gameContoller:
         self.screen = pg.display.set_mode((1680, 1080))
         pg.display.set_caption('ShootnRun')
         self.clock = pg.time.Clock()
+        pg.mouse.set_cursor(*pg.cursors.diamond)
 
         self.logic = BaseLogic()
 
