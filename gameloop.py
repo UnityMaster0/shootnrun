@@ -1,13 +1,14 @@
-import pygame as pg
-import time
 import sys
-from main import LevelOneLogic
+import time
+
+import pygame as pg
+
 from base import BaseLogic
+from level1 import LevelOneLogic
+from level2 import LevelTwoLogic
+from level3 import LevelThreeLogic
 
 #FPS = 60
-
-level = "b"
-
 
 class gameContoller:
 
@@ -17,12 +18,11 @@ class gameContoller:
         self.screen = pg.display.set_mode((1680, 1080))
         pg.display.set_caption('ShootnRun')
         self.clock = pg.time.Clock()
+        pg.mouse.set_cursor(*pg.cursors.diamond)
 
-        if level == "b":
-            self.logic = BaseLogic()
+        self.logic = BaseLogic()
 
-        if level == "1":
-            self.logic = LevelOneLogic()
+        self.atBase = True
 
         global start_time
         start_time = time.time()
@@ -41,6 +41,22 @@ class gameContoller:
                      
             self.screen.fill('darkgrey')
             self.logic.run()
+
+        #Changes the level that is loaded
+            if self.atBase == True:
+                self.switchToOne = self.logic.levelSetOne()
+                self.switchToTwo = self.logic.levelSetTwo()
+                self.switchToThree = self.logic.levelSetThree()
+                if self.switchToOne == True:
+                    self.logic = LevelOneLogic()
+                    self.atBase = False
+                if self.switchToTwo == True:
+                    self.logic = LevelTwoLogic()
+                    self.atBase = False
+                if self.switchToThree == True:
+                    self.logic = LevelThreeLogic()
+                    self.atBase = False
+
             if pg.key.get_pressed()[pg.K_LSHIFT]:
                 self.fps = 20
             else: self.fps = 60
