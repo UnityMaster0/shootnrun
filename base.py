@@ -1,5 +1,7 @@
 from random import randint
 
+from time import time
+
 import pygame as pg
 
 from worlddata import BASE, TILE
@@ -9,8 +11,9 @@ class Wall(pg.sprite.Sprite):
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('.//Resources/wall.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/brick_wall.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
+        self.image = pg.transform.scale(self.image, (64, 64))
 
 # Portal to level sprite
 class Portal(pg.sprite.Sprite):
@@ -19,7 +22,6 @@ class Portal(pg.sprite.Sprite):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
-        self.image = pg.transform.scale(self.image, (200,100))
 
         self.player = player
 
@@ -36,7 +38,6 @@ class Player(pg.sprite.Sprite):
         self.speed = 5
 
         self.wall = wall
-
         self.locked_w = False
         self.locked_s = False
         self.locked_a = False
@@ -71,7 +72,7 @@ class Player(pg.sprite.Sprite):
             elif self.locked_a == True and pg.key.get_pressed()[pg.K_a] == True:
                 self.direction.x = 0
 
-            if self.locked_a == False and pg.key.get_pressed()[pg.K_d] == True:
+            if self.locked_a == False and pg.key.get_pressed()[pg.K_d] == True and pg.sprite.spritecollideany(self, self.wall) != None:
                 self.locked_d = True
                 self.direction.x = 0
             elif self.locked_d == False and pg.key.get_pressed()[pg.K_d] == True:
@@ -85,29 +86,39 @@ class Player(pg.sprite.Sprite):
             self.locked_a = False
             self.locked_d = False
 
-            if pg.key.get_pressed()[pg.K_w] == True:
+            if pg.key.get_pressed()[pg.K_w] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.y = -1
-            elif pg.key.get_pressed()[pg.K_s] == True:
+            elif pg.key.get_pressed()[pg.K_s] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.y = 1
             else:
                 self.direction.y = 0
         
-            if pg.key.get_pressed()[pg.K_d] == True:
+            if pg.key.get_pressed()[pg.K_d] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.x = 1
-            elif pg.key.get_pressed()[pg.K_a] == True:
+            elif pg.key.get_pressed()[pg.K_a] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.x = -1
             else:
                 self.direction.x = 0
 
 
-
 # Math for position change
-    def move(self, speed):
+    def move(self,speed):
         self.rect.center += self.direction * speed
-            
+
+    def orentation(self):
+        if pg.key.get_pressed()[pg.K_w] == True:
+            self.image = pg.image.load('.//Resources/brick_wall.png').convert_alpha()
+        elif pg.key.get_pressed()[pg.K_s] == True:
+            self.image = pg.image.load('.//Resources/player.png').convert_alpha()
+        elif pg.key.get_pressed()[pg.K_a] == True:
+            self.image = pg.image.load('.//Resources/enemy.png').convert_alpha()
+        elif pg.key.get_pressed()[pg.K_d] == True:
+            self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
+        
 # Updates the player sprite
     def update(self):
         self.moveControl()
+        self.orentation()
         self.move(self.speed)
 
 class BaseLogic():

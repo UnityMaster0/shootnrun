@@ -258,11 +258,6 @@ class LevelThreeLogic:
                     self.player.rect.x = x
                     self.player.rect.y = y
 
-                if col == 'e':
-                    tick = pg.time.get_ticks()
-                    for spwan_enemies in range(2,6):
-                        Enemy((x,y), self.player, self.enemies)
-
 # Checks that the trigger button is pressed and does timing
     def trigger(self):
 
@@ -315,16 +310,13 @@ class LevelThreeLogic:
 
 # Creates new eneimes randomly at spawn points
     def respawn_enemies(self):
-        x1 = 23 * 64
-        x2 = 2 * 64
-        y = 8 * 64
+        x = randint(1, 38) * 64
+        y = randint(1,16) * 64
 
         respawn = randint(1, diff_spawn)
 
-        if respawn == 2:
-            Enemy((x1,y), self.player, self.enemies)
-        if respawn == 5:
-            Enemy((x2,y), self.player, self.enemies)
+        if respawn == 1 or respawn == 2:
+            Enemy((x,y), self.player, self.enemies)
 
     def scroll(self):
 

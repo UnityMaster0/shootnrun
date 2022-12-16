@@ -115,7 +115,7 @@ class Player(pg.sprite.Sprite):
             elif pg.key.get_pressed()[pg.K_a] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.x = -1
             else:
-                self.direction.x = 0       
+                self.direction.x = 0
         
 # Math for position change
     def move(self,speed):
@@ -220,7 +220,16 @@ class Rocket(pg.sprite.Sprite):
         if pg.sprite.spritecollideany(self, self.killing) != None:
             pg.sprite.spritecollideany(self, self.killing).kill()
 
-        
+class Portal(pg.sprite.Sprite):
+
+    def __init__(self, pos, player, *groups):
+        super().__init__(*groups)
+        self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
+        self.rect = self.image.get_rect(topleft = pos)
+        self.image = pg.transform.scale(self.image, (200,100))
+
+        self.player = player
+
 # Creates game sprites and logic
 class LevelOneLogic:
     
@@ -234,11 +243,13 @@ class LevelOneLogic:
         self.bullets = pg.sprite.Group()
         self.Rocket = pg.sprite.Group()
         self.ammobox = pg.sprite.Group()
+        self.portal = pg.sprite.Group()
 
         self.makeSprites()
 
         self.ammo = 100 * 10
         self.Rocket_supply = 5 * 10
+        self.onePortal = False
 
     
 # Draws sprites
@@ -257,11 +268,6 @@ class LevelOneLogic:
                 if col == 'p':
                     self.player.rect.x = x
                     self.player.rect.y = y
-
-                if col == 'e':
-                    tick = pg.time.get_ticks()
-                    for spwan_enemies in range(2,6):
-                        Enemy((x,y), self.player, self.enemies)
 
 # Checks that the trigger button is pressed and does timing
     def trigger(self):
@@ -315,16 +321,16 @@ class LevelOneLogic:
 
 # Creates new eneimes randomly at spawn points
     def respawn_enemies(self):
-        x1 = 23 * 64
-        x2 = 2 * 64
-        y = 8 * 64
+        x1 = randint(1, 10) * 64
+        x2 = randint(20,30) * 64
+        y = randint(1,16) * 64
 
         respawn = randint(1, diff_spawn)
 
+        if respawn == 1:
+            Enemy((x1, y), self.player, self.enemies)
         if respawn == 2:
-            Enemy((x1,y), self.player, self.enemies)
-        if respawn == 5:
-            Enemy((x2,y), self.player, self.enemies)
+            Enemy((x2, y), self.player, self.enemies)
 
     def scroll(self):
 
@@ -335,6 +341,8 @@ class LevelOneLogic:
                 w.rect.x -= scroll
             for e in self.enemies:
                 e.rect.x -= scroll
+            for p in self.portal:
+                p.rect.x -= scroll
 
         if self.player.rect.x <= 100:
             scroll = 100 - self.player.rect.x
@@ -343,6 +351,8 @@ class LevelOneLogic:
                 w.rect.x += scroll
             for e in self.enemies:
                 e.rect.x += scroll
+            for p in self.portal:
+                p.rect.x += scroll
 
         if self.player.rect.y >= 800:
             scroll = self.player.rect.y - 800
@@ -351,6 +361,8 @@ class LevelOneLogic:
                 w.rect.y -= scroll
             for e in self.enemies:
                 e.rect.y -= scroll
+            for p in self.portal:
+                p.rect.y -= scroll
 
         if self.player.rect.y <= 100:
             scroll = 100 - self.player.rect.y
@@ -359,6 +371,15 @@ class LevelOneLogic:
                 w.rect.y += scroll
             for e in self.enemies:
                 e.rect.y += scroll
+            for p in self.portal:
+                p.rect.x += scroll
+
+    def summon_portal(self):
+
+        if pg.key.get_pressed()[pg.K_p] and self.onePortal == False:
+            xy = randint(1, 30) * 64
+            Portal((xy,xy), self.player, self.portal)
+            self.onePortal = True
 
 # Runs all game functions            
     def run(self):
@@ -366,6 +387,7 @@ class LevelOneLogic:
         self.throw_Rocket()
         self.respawn_enemies()
         self.scroll()
+        self.summon_portal()
         self.players.update()
         self.enemies.update()
         self.bullets.update()
@@ -375,3 +397,8 @@ class LevelOneLogic:
         self.enemies.draw(self.display_surface)
         self.bullets.draw(self.display_surface)
         self.Rocket.draw(self.display_surface)
+        self.portal.draw(self.display_surface)
+
+    def returnToBase(self):
+        if pg.sprite.spritecollideany(self.player, self.portal) != None:
+            return True

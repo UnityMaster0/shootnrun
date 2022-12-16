@@ -1,5 +1,6 @@
 import sys
 import time
+
 import pygame as pg
 
 from base import BaseLogic
@@ -55,6 +56,12 @@ class gameContoller:
                 if self.switchToThree == True:
                     self.logic = LevelThreeLogic()
                     self.atBase = False
+            if self.atBase == False:
+                self.returnToBase = self.logic.returnToBase()
+                if self.returnToBase == True:
+                    self.logic = BaseLogic()
+                    self.atBase = True
+
 
             if pg.key.get_pressed()[pg.K_LSHIFT]:
                 self.fps = 20
