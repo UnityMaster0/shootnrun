@@ -1,5 +1,4 @@
 from random import randint
-
 from time import time
 
 import pygame as pg
@@ -31,8 +30,15 @@ class Player(pg.sprite.Sprite):
 
     def __init__(self, pos, wall, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('.//Resources/player.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/player-right(1).png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
+
+        self.value = 0
+        self.animation_images_left = [pg.image.load('.//Resources/player-left(1).png'), pg.image.load('.//Resources/player-left(2).png'),
+                                pg.image.load('.//Resources/player-left(3).png'), pg.image.load('.//Resources/player-left(4).png')]
+                                
+        self.animation_images_right = [pg.image.load('.//Resources/player-right(2).png'), pg.image.load('.//Resources/player-right(1).png'),
+                                pg.image.load('.//Resources/player-right(1).png'), pg.image.load('.//Resources/player-right(3).png')]
         
         self.direction = pg.math.Vector2()
         self.speed = 5
@@ -72,7 +78,7 @@ class Player(pg.sprite.Sprite):
             elif self.locked_a == True and pg.key.get_pressed()[pg.K_a] == True:
                 self.direction.x = 0
 
-            if self.locked_a == False and pg.key.get_pressed()[pg.K_d] == True and pg.sprite.spritecollideany(self, self.wall) != None:
+            if self.locked_a == False and pg.key.get_pressed()[pg.K_d] == True:
                 self.locked_d = True
                 self.direction.x = 0
             elif self.locked_d == False and pg.key.get_pressed()[pg.K_d] == True:
@@ -105,20 +111,45 @@ class Player(pg.sprite.Sprite):
     def move(self,speed):
         self.rect.center += self.direction * speed
 
-    def orentation(self):
-        if pg.key.get_pressed()[pg.K_w] == True:
-            self.image = pg.image.load('.//Resources/brick_wall.png').convert_alpha()
-        elif pg.key.get_pressed()[pg.K_s] == True:
-            self.image = pg.image.load('.//Resources/player.png').convert_alpha()
-        elif pg.key.get_pressed()[pg.K_a] == True:
-            self.image = pg.image.load('.//Resources/enemy.png').convert_alpha()
-        elif pg.key.get_pressed()[pg.K_d] == True:
-            self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
+    def animation(self):
+    
+        if pg.key.get_pressed()[pg.K_w]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_left):
+                self.value = 0
+
+            self.image = self.animation_images_left[self.value]
+
+        if pg.key.get_pressed()[pg.K_s]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_right):
+                self.value = 0
+
+            self.image = self.animation_images_right[self.value]
+
+        if pg.key.get_pressed()[pg.K_a]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_left):
+                self.value = 0
+
+            self.image = self.animation_images_left[self.value]
+
+
+        if pg.key.get_pressed()[pg.K_d]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_right):
+                self.value = 0
+
+            self.image = self.animation_images_right[self.value]
         
 # Updates the player sprite
     def update(self):
         self.moveControl()
-        self.orentation()
+        self.animation()
         self.move(self.speed)
 
 class BaseLogic():
