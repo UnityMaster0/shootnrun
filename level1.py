@@ -133,7 +133,6 @@ class Player(pg.sprite.Sprite):
         self.move(self.speed)
         self.collide()
 
-
 # Enemy sprite
 class Enemy(pg.sprite.Sprite):
 
@@ -209,7 +208,7 @@ class Rocket(pg.sprite.Sprite):
         if self.direction.length() > 0:
             self.direction.normalize_ip()
 
-# Updates Rocket sprites
+    # Updates Rocket sprites
     def update(self):
         self.rect.center += (self.direction * self.speed)
         
@@ -219,6 +218,35 @@ class Rocket(pg.sprite.Sprite):
         
         if pg.sprite.spritecollideany(self, self.killing) != None:
             pg.sprite.spritecollideany(self, self.killing).kill()
+
+    class Flamethrower(pg.sprite.Sprite):
+
+        def __init__(self, pos, target, killing, *groups):
+            super().__init__(*groups) 
+
+            self.image = pg.image.load('.//Resources/bullet.png').convert_alpha()
+            self.rect = self.image.get_rect(topleft = pos)
+            self.image = pg.transform.scale(self.image, (16,16))
+
+            self.initial_pos = pg.math.Vector2(pos)
+            self.target = pg.math.Vector2(target)
+            self.speed = 20
+
+            self.killing = killing
+
+            self.direction = (self.target) - pg.math.Vector2(self.rect.center)
+            if self.direction.length() > 0:
+                self.direction.normalize_ip()
+
+        def update(self):
+            self.rect.center += (self.direction * self.speed)
+            
+            v = self.initial_pos - pg.math.Vector2(self.rect.center)
+            if v.length() > 500:
+                self.kill()
+        
+            if pg.sprite.spritecollideany(self, self.killing) != None:
+                pg.sprite.spritecollideany(self, self.killing).kill()
 
 class Portal(pg.sprite.Sprite):
 
@@ -240,15 +268,16 @@ class LevelOneLogic:
         self.players = pg.sprite.Group()
         self.wall_group = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
-        self.bullets = pg.sprite.Group()
-        self.Rocket = pg.sprite.Group()
+        self.weapons = pg.sprite.Group()
         self.ammobox = pg.sprite.Group()
         self.portal = pg.sprite.Group()
 
         self.makeSprites()
 
-        self.ammo = 100 * 10
-        self.Rocket_supply = 5 * 10
+        self.ammo = 10000
+        self.rocket_ammo = 10
+        self.flame_ammo = 100000
+        self.weapon_select = 1
         self.onePortal = False
 
     
@@ -259,66 +288,64 @@ class LevelOneLogic:
             for self.col_index,col in enumerate(row):
                 x = self.col_index * TILE
                 y = self.row_index * TILE
+
                 if col == 'x':
                     Wall((x,y),[self.wall_group])
-
-                if col == 'z':
-                    Forcefield((x,y), self.wall_group)
 
                 if col == 'p':
                     self.player.rect.x = x
                     self.player.rect.y = y
 
-# Checks that the trigger button is pressed and does timing
+    # Checks that the trigger button is pressed and does timing
     def trigger(self):
+        
+        if pg.key.get_pressed()[pg.K_1]:
+            self.weapon_select = 1
+
+        elif pg.key.get_pressed()[pg.K_2]:
+            self.weapons_select = 2
+
+        elif pg.key.get_pressed()[pg.K_3]:
+            self.weapon_select = 3
 
         self.mouse_button = pg.mouse.get_pressed(num_buttons=3)
         
         if self.mouse_button == (True, False, False) or pg.key.get_pressed()[pg.K_SPACE] == True:
-                self.fire = pg.time.get_ticks()
-                self.ammo -= 1
+            self.fire = pg.time.get_ticks()
+            self.ammo -= 1
                 
-# Shoots a bullet
+    # Shoots a bullet
     def shoot(self):
 
         y = self.player.rect.y + 32
         x = self.player.rect.x + 32
 
         try:
-            if self.ammo >= 0:
-                self.trigger()
-                firing = pg.time.get_ticks() - self.fire
-                if firing > 0 and firing < 19:    
-                    Bullet((x,y), pg.mouse.get_pos(), self.enemies, self.bullets)
+
+            if  self.weapon_select == 1:
+                if self.normal_ammo >= 0:
+                    self.trigger()
+                    firing = pg.time.get_ticks() - self.fire
+                    if firing > 0 and firing < 19:    
+                        Bullet((x,y), pg.mouse.get_pos(), self.enemies, self.weapons)
+
+            elif  self.weapon_select == 2:
+                if self.rocket_ammo >= 0:
+                    self.trigger()
+                    firing = pg.time.get_ticks() - self.fire
+                    if firing > 0 and firing < 19:    
+                        Rocket((x,y), pg.mouse.get_pos(), self.enemies, self.weapons)
+
+            elif  self.weapon_select == 3:
+                if self.flame_ammo >= 0:
+                    self.trigger()
+                    firing = pg.time.get_ticks() - self.fire
+                    if firing > 0 and firing < 5:    
+                        Flamethrower((x,y), pg.mouse.get_pos(), self.enemies, self.weapons)
 
         except:
-            return
-
-# Checks that the throw Rocket button is pressed and does timing
-    def windup_throw(self):
+           pass 
         
-        if self.mouse_button == (False, False, True):
-                self.throw = pg.time.get_ticks()
-                self.Rocket_supply -= 1
-
-# Throws the Rocket
-    def throw_Rocket(self):
-
-        y = self.player.rect.y + 32
-        x = self.player.rect.x + 32
-  
-        self.mouse_button = pg.mouse.get_pressed(num_buttons=3)
-
-        try:
-            if self.Rocket_supply >= 0:
-                self.windup_throw()
-                throwing = pg.time.get_ticks() - self.throw
-                if throwing > 0 and throwing < 18:    
-                    Rocket((x,y), pg.mouse.get_pos(), self.enemies, self.Rocket)
-
-        except:
-            return
-
 # Creates new eneimes randomly at spawn points
     def respawn_enemies(self):
         x1 = randint(1, 10) * 64
@@ -384,19 +411,16 @@ class LevelOneLogic:
 # Runs all game functions            
     def run(self):
         self.shoot()
-        self.throw_Rocket()
         self.respawn_enemies()
         self.scroll()
         self.summon_portal()
         self.players.update()
         self.enemies.update()
-        self.bullets.update()
-        self.Rocket.update()
+        self.weapons.update()
         self.wall_group.draw(self.display_surface)
         self.players.draw(self.display_surface)
         self.enemies.draw(self.display_surface)
-        self.bullets.draw(self.display_surface)
-        self.Rocket.draw(self.display_surface)
+        self.weapons.draw(self.display_surface)
         self.portal.draw(self.display_surface)
 
     def returnToBase(self):

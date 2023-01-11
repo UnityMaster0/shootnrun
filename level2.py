@@ -38,13 +38,14 @@ class Wall(pg.sprite.Sprite):
         self.image = pg.image.load('.//Resources/wall.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
 
-# Forcefield sprite
-class Forcefield(pg.sprite.Sprite):
+# Portal sprite
+class Portal(pg.sprite.Sprite):
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
+
 
 # Player sprite and movement controls
 class Player(pg.sprite.Sprite):
@@ -227,7 +228,8 @@ class LevelTwoLogic:
     def __init__(self):
         
         self.display_surface = pg.display.get_surface()
-# Creates sprite groups
+    
+    # Creates sprite groups
         self.players = pg.sprite.Group()
         self.wall_group = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
@@ -240,7 +242,8 @@ class LevelTwoLogic:
         self.ammo = 100 * 10
         self.Rocket_supply = 5 * 10
 
-    
+        self.onePortal = False
+
 # Draws sprites
     def makeSprites(self):
         self.player = Player((0,0), self.enemies, self.wall_group, self.players)
@@ -248,11 +251,9 @@ class LevelTwoLogic:
             for self.col_index,col in enumerate(row):
                 x = self.col_index * TILE
                 y = self.row_index * TILE
+                
                 if col == 'x':
                     Wall((x,y),[self.wall_group])
-
-                if col == 'z':
-                    Forcefield((x,y), self.wall_group)
 
                 if col == 'p':
                     self.player.rect.x = x
@@ -352,7 +353,14 @@ class LevelTwoLogic:
             for e in self.enemies:
                 e.rect.y += scroll
 
-# Runs all game functions            
+    def summon_portal(self):
+
+        if pg.key.get_pressed()[pg.K_p] and self.onePortal == False:
+            xy = randint(1, 30) * 64
+            Portal((xy,xy), self.player, self.portal)
+            self.onePortal = True
+
+    # Runs all game functions            
     def run(self):
         self.shoot()
         self.throw_Rocket()
@@ -367,3 +375,8 @@ class LevelTwoLogic:
         self.enemies.draw(self.display_surface)
         self.bullets.draw(self.display_surface)
         self.Rocket.draw(self.display_surface)
+        self.Portal.draw(self.display_surface)
+
+    def returnToBase(self):
+        if pg.sprite.spritecollideany(self.player, self.portal) != None:
+            return True
