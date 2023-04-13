@@ -1,16 +1,17 @@
 from random import randint
+from time import time
 
 import pygame as pg
 
 from worlddata import BASE, TILE
 
-
 class Wall(pg.sprite.Sprite):
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('.//Resources/wall.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/brick_wall.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
+        self.image = pg.transform.scale(self.image, (64, 64))
 
 # Portal to level sprite
 class Portal(pg.sprite.Sprite):
@@ -19,7 +20,6 @@ class Portal(pg.sprite.Sprite):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
-        self.image = pg.transform.scale(self.image, (200,100))
 
         self.player = player
 
@@ -29,14 +29,20 @@ class Player(pg.sprite.Sprite):
 
     def __init__(self, pos, wall, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('.//Resources/player.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/player-right(1).png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
+
+        self.value = 0
+        self.animation_images_left = [pg.image.load('.//Resources/player-left(1).png'), pg.image.load('.//Resources/player-left(2).png'),
+                                pg.image.load('.//Resources/player-left(3).png'), pg.image.load('.//Resources/player-left(4).png')]
+                                
+        self.animation_images_right = [pg.image.load('.//Resources/player-right(2).png'), pg.image.load('.//Resources/player-right(1).png'),
+                                pg.image.load('.//Resources/player-right(1).png'), pg.image.load('.//Resources/player-right(3).png')]
         
         self.direction = pg.math.Vector2()
         self.speed = 5
 
         self.wall = wall
-
         self.locked_w = False
         self.locked_s = False
         self.locked_a = False
@@ -85,29 +91,64 @@ class Player(pg.sprite.Sprite):
             self.locked_a = False
             self.locked_d = False
 
-            if pg.key.get_pressed()[pg.K_w] == True:
+            if pg.key.get_pressed()[pg.K_w] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.y = -1
-            elif pg.key.get_pressed()[pg.K_s] == True:
+            elif pg.key.get_pressed()[pg.K_s] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.y = 1
             else:
                 self.direction.y = 0
         
-            if pg.key.get_pressed()[pg.K_d] == True:
+            if pg.key.get_pressed()[pg.K_d] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.x = 1
-            elif pg.key.get_pressed()[pg.K_a] == True:
+            elif pg.key.get_pressed()[pg.K_a] == True and pg.sprite.spritecollideany(self, self.wall) == None:
                 self.direction.x = -1
             else:
                 self.direction.x = 0
 
 
-
 # Math for position change
-    def move(self, speed):
+    def move(self,speed):
         self.rect.center += self.direction * speed
-            
+
+    def animation(self):
+    
+        if pg.key.get_pressed()[pg.K_w]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_left):
+                self.value = 0
+
+            self.image = self.animation_images_left[self.value]
+
+        if pg.key.get_pressed()[pg.K_s]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_right):
+                self.value = 0
+
+            self.image = self.animation_images_right[self.value]
+
+        if pg.key.get_pressed()[pg.K_a]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_left):
+                self.value = 0
+
+            self.image = self.animation_images_left[self.value]
+
+
+        if pg.key.get_pressed()[pg.K_d]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_right):
+                self.value = 0
+
+            self.image = self.animation_images_right[self.value]
+        
 # Updates the player sprite
     def update(self):
         self.moveControl()
+        self.animation()
         self.move(self.speed)
 
 class BaseLogic():
@@ -130,7 +171,7 @@ class BaseLogic():
                 y = self.row_index * TILE
                 if col == 'x':
                     Wall((x,y), self.wall_group)
-
+                    
                 if col == '1':
                     self.toLevelOne = Portal((x,y), self.players, self.portal_group)
 
@@ -187,18 +228,12 @@ class BaseLogic():
         self.wall_group.draw(self.display_surface)
         self.portal_group.draw(self.display_surface)
 
-    '''Each of the setLevel... functions take a post condition of self and reutrn a posts condition of True.
-    These functions check if the player is colliding with the one of the portals. Based on the portal that is collided with the function will return True respectivly
-    The post conditon functions are used in gameloop.py to change the level that is loaded.'''
-
-    def levelSetOne(self):
+    def levelSet(self):
         if pg.sprite.spritecollideany(self.toLevelOne, self.players):
-            return True
-    
-    def levelSetTwo(self):
+            return 1
         if pg.sprite.spritecollideany(self.toLevelTwo, self.players):
-            return True
-
-    def levelSetThree(self):
+            return 2
         if pg.sprite.spritecollideany(self.toLevelThree, self.players):
-            return True      
+            return 3
+        else:
+            return 0
