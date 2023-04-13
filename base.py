@@ -5,7 +5,6 @@ import pygame as pg
 
 from worlddata import BASE, TILE
 
-
 class Wall(pg.sprite.Sprite):
 
     def __init__(self, pos, *groups):
@@ -172,7 +171,7 @@ class BaseLogic():
                 y = self.row_index * TILE
                 if col == 'x':
                     Wall((x,y), self.wall_group)
-
+                    
                 if col == '1':
                     self.toLevelOne = Portal((x,y), self.players, self.portal_group)
 
@@ -229,18 +228,12 @@ class BaseLogic():
         self.wall_group.draw(self.display_surface)
         self.portal_group.draw(self.display_surface)
 
-    '''Each of the setLevel... functions take a post condition of self and reutrn a posts condition of True.
-    These functions check if the player is colliding with the one of the portals. Based on the portal that is collided with the function will return True respectivly
-    The post conditon functions are used in gameloop.py to change the level that is loaded.'''
-
-    def levelSetOne(self):
+    def levelSet(self):
         if pg.sprite.spritecollideany(self.toLevelOne, self.players):
-            return True
-    
-    def levelSetTwo(self):
+            return 1
         if pg.sprite.spritecollideany(self.toLevelTwo, self.players):
-            return True
-
-    def levelSetThree(self):
+            return 2
         if pg.sprite.spritecollideany(self.toLevelThree, self.players):
-            return True      
+            return 3
+        else:
+            return 0

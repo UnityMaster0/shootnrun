@@ -1,34 +1,8 @@
-import os
 import sys
+import pygame as pg
 from random import randint
 
-import pygame as pg
-
-from worlddata import LEVELTWO, TILE
-
-levelchoice = 2
-
-# Show Game Rules
-os.system("clear")
-print('Welcome to ShootNRun, the ultimate shoot and run experience. To play set your difficuly below, use WASD controls to move (W - up, S - down. A - left, D - right), and press space or left click on your mouse to fire. Rockets can be fired with mouse right click. Hold shift for slow motion to avoid eneimes, but you can not attack in this mode. Try to survive as long as possible, but be careful you have limited ammo and Rockets. Please enjoy and thank you for playing ShootNRun!')
-# Asks for diffculty level input and sets difficulty variables
-global diff_spawn, max_speed, min_speed
-diff_input = int(levelchoice)
-
-if diff_input == 1:
-    diff_spawn = 80
-    max_speed = 4
-    min_speed = 2
-
-if diff_input == 2:
-    diff_spawn = 40
-    max_speed = 5
-    min_speed = 3
-
-if diff_input == 3:
-    diff_spawn = 30
-    max_speed = 7
-    min_speed = 4
+from worlddata import MAP, DIFFSPAWNONE, DIFFSPAWNTWO, DIFFSPAWNTHREE, MAXSPEEDONE, MAXSPEEDTWO, MAXSPEEDTHREE, MINSPEEDONE, MINSPEEDTWO, MINSPEEDTHREE, TILE
 
 # Wall sprite
 class Wall(pg.sprite.Sprite):
@@ -38,30 +12,36 @@ class Wall(pg.sprite.Sprite):
         self.image = pg.image.load('.//Resources/wall.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
 
-# Portal sprite
-class Portal(pg.sprite.Sprite):
+# Forcefield sprite
+class Forcefield(pg.sprite.Sprite):
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
 
-
 # Player sprite and movement controls
 class Player(pg.sprite.Sprite):
 
     def __init__(self, pos, enemy, wall, *groups):
         super().__init__(*groups)
-        self.image = pg.image.load('.//Resources/player.png').convert_alpha()
+        self.image = pg.image.load('.//Resources/player-left(4).png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
         
         self.direction = pg.math.Vector2()
         self.speed = 5
 
+        self.value = 0
+        self.animation_images_left = [pg.image.load('.//Resources/player-left(1).png'), pg.image.load('.//Resources/player-left(2).png'),
+                                pg.image.load('.//Resources/player-left(3).png'), pg.image.load('.//Resources/player-left(4).png')]
+                            
+        self.animation_images_right = [pg.image.load('.//Resources/player-right(2).png'), pg.image.load('.//Resources/player-right(1).png'),
+                                pg.image.load('.//Resources/player-right(1).png'), pg.image.load('.//Resources/player-right(3).png')]
+    
         self.enemy = enemy
         self.wall = wall
 
-# Movement inputs for the player
+    # Movement inputs for the player
     def moveControl(self):
     
         if pg.sprite.spritecollideany(self, self.wall) != None:
@@ -118,38 +98,73 @@ class Player(pg.sprite.Sprite):
             else:
                 self.direction.x = 0
         
-# Math for position change
+    # Math for position change
     def move(self,speed):
         self.rect.center += self.direction * speed
 
-# Collision with enemy ends the game
+    def animation(self):
+    
+        if pg.key.get_pressed()[pg.K_w]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_left):
+                self.value = 0
+
+            self.image = self.animation_images_left[self.value]
+
+        if pg.key.get_pressed()[pg.K_s]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_right):
+                self.value = 0
+
+            self.image = self.animation_images_right[self.value]
+
+        if pg.key.get_pressed()[pg.K_a]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_left):
+                self.value = 0
+
+            self.image = self.animation_images_left[self.value]
+
+
+        if pg.key.get_pressed()[pg.K_d]:
+            self.value += 1
+
+            if self.value >= len(self.animation_images_right):
+                self.value = 0
+
+            self.image = self.animation_images_right[self.value]
+
+    # Collision with enemy ends the game
     def collide(self):
         if pg.sprite.spritecollideany(self, self.enemy) != None:
             pg.quit()
             sys.exit()
             
-# Updates the player sprite
+    # Updates the player sprite
     def update(self):
         self.moveControl()
         self.move(self.speed)
+        self.animation()
         self.collide()
 
 
 # Enemy sprite
 class Enemy(pg.sprite.Sprite):
 
-    def __init__(self, pos, target,*groups):
+    def __init__(self, pos, target, min_speed, max_speed, *groups):
         super().__init__(*groups)
         self.image = pg.image.load('.//Resources/enemy.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
 
         self.direction = pg.math.Vector2()
-        self.speed = randint(min_speed,max_speed)
+        self.speed = randint(min_speed, max_speed)
 
         self.target = target
 
-# Makes enemies follow the player
-            
+    # Makes enemies follow the player        
     def update(self):
         if self.target:
             self.direction = pg.math.Vector2(self.target.rect.center) - pg.math.Vector2(self.rect.center)
@@ -178,7 +193,7 @@ class Bullet(pg.sprite.Sprite):
         if self.direction.length() > 0:
             self.direction.normalize_ip()
 
-# Math for bullet position change  
+    # Math for bullet position change  
     def update(self):
         self.rect.center += (self.direction * self.speed)
         
@@ -210,7 +225,7 @@ class Rocket(pg.sprite.Sprite):
         if self.direction.length() > 0:
             self.direction.normalize_ip()
 
-# Updates Rocket sprites
+    # Updates Rocket sprites
     def update(self):
         self.rect.center += (self.direction * self.speed)
         
@@ -221,77 +236,97 @@ class Rocket(pg.sprite.Sprite):
         if pg.sprite.spritecollideany(self, self.killing) != None:
             pg.sprite.spritecollideany(self, self.killing).kill()
 
-        
+class Portal(pg.sprite.Sprite):
+
+    def __init__(self, pos, player, *groups):
+        super().__init__(*groups)
+        self.image = pg.image.load('.//Resources/force-field.png').convert_alpha()
+        self.rect = self.image.get_rect(topleft = pos)
+        self.image = pg.transform.scale(self.image, (200,100))
+
+        self.player = player
+
 # Creates game sprites and logic
-class LevelTwoLogic:
+class Logic:
     
-    def __init__(self):
+    def __init__(self, select):
         
         self.display_surface = pg.display.get_surface()
-    
-    # Creates sprite groups
+        # Creates sprite groups
         self.players = pg.sprite.Group()
         self.wall_group = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
         self.Rocket = pg.sprite.Group()
         self.ammobox = pg.sprite.Group()
+        self.portal = pg.sprite.Group()
 
         self.makeSprites()
 
-        self.ammo = 100 * 10
-        self.Rocket_supply = 5 * 10
+        if select == 1:
+            self.diff_spawn = DIFFSPAWNONE
+            self.max_speed = MAXSPEEDONE
+            self.min_speed = MINSPEEDONE
+        if select == 2:
+            self.diff_spawn = DIFFSPAWNTWO
+            self.max_speed = MAXSPEEDTWO
+            self.min_speed = MINSPEEDTWO
+        if select == 3:
+            self.diff_spawn = DIFFSPAWNTHREE
+            self.max_speed = MAXSPEEDTHREE
+            self.min_speed = MINSPEEDTHREE
 
+        self.Rocket_supply = 50
         self.onePortal = False
 
-# Draws sprites
+    # Draws sprites
     def makeSprites(self):
         self.player = Player((0,0), self.enemies, self.wall_group, self.players)
-        for self.row_index,row in enumerate(LEVELTWO):
+        for self.row_index,row in enumerate(MAP):
             for self.col_index,col in enumerate(row):
                 x = self.col_index * TILE
                 y = self.row_index * TILE
-                
                 if col == 'x':
                     Wall((x,y),[self.wall_group])
+
+                if col == 'z':
+                    Forcefield((x,y), self.wall_group)
 
                 if col == 'p':
                     self.player.rect.x = x
                     self.player.rect.y = y
 
-# Checks that the trigger button is pressed and does timing
+    # Checks that the trigger button is pressed and does timing
     def trigger(self):
 
         self.mouse_button = pg.mouse.get_pressed(num_buttons=3)
         
         if self.mouse_button == (True, False, False) or pg.key.get_pressed()[pg.K_SPACE] == True:
                 self.fire = pg.time.get_ticks()
-                self.ammo -= 1
                 
-# Shoots a bullet
+    # Shoots a bullet
     def shoot(self):
 
         y = self.player.rect.y + 32
         x = self.player.rect.x + 32
 
         try:
-            if self.ammo >= 0:
-                self.trigger()
-                firing = pg.time.get_ticks() - self.fire
-                if firing > 0 and firing < 19:    
-                    Bullet((x,y), pg.mouse.get_pos(), self.enemies, self.bullets)
+            self.trigger()
+            firing = pg.time.get_ticks() - self.fire
+            if firing > 0 and firing < 19:    
+                Bullet((x,y), pg.mouse.get_pos(), self.enemies, self.bullets)
 
         except:
             return
 
-# Checks that the throw Rocket button is pressed and does timing
+    # Checks that the throw Rocket button is pressed and does timing
     def windup_throw(self):
         
         if self.mouse_button == (False, False, True):
                 self.throw = pg.time.get_ticks()
                 self.Rocket_supply -= 1
 
-# Throws the Rocket
+    # Throws the Rocket
     def throw_Rocket(self):
 
         y = self.player.rect.y + 32
@@ -300,7 +335,7 @@ class LevelTwoLogic:
         self.mouse_button = pg.mouse.get_pressed(num_buttons=3)
 
         try:
-            if self.Rocket_supply >= 0:
+            if self.Rocket_supply > 0:
                 self.windup_throw()
                 throwing = pg.time.get_ticks() - self.throw
                 if throwing > 0 and throwing < 18:    
@@ -309,15 +344,15 @@ class LevelTwoLogic:
         except:
             return
 
-# Creates new eneimes randomly at spawn points
+    # Creates new eneimes randomly at spawn points
     def respawn_enemies(self):
         x = randint(1, 38) * 64
         y = randint(1,16) * 64
 
-        respawn = randint(1, diff_spawn)
+        respawn = randint(1, self.diff_spawn)
 
         if respawn == 1 or respawn == 2:
-            Enemy((x,y), self.player, self.enemies)
+            Enemy((x,y), self.player, self.min_speed, self.max_speed, self.enemies)
 
     def scroll(self):
 
@@ -375,8 +410,3 @@ class LevelTwoLogic:
         self.enemies.draw(self.display_surface)
         self.bullets.draw(self.display_surface)
         self.Rocket.draw(self.display_surface)
-        self.Portal.draw(self.display_surface)
-
-    def returnToBase(self):
-        if pg.sprite.spritecollideany(self.player, self.portal) != None:
-            return True

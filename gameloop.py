@@ -1,14 +1,9 @@
 import sys
 import time
-
 import pygame as pg
 
 from base import BaseLogic
-from level1 import LevelOneLogic
-from level2 import LevelTwoLogic
-from level3 import LevelThreeLogic
-
-#FPS = 60
+from level import Logic
 
 class gameContoller:
 
@@ -30,39 +25,28 @@ class gameContoller:
 
 # Runs the game
     def run(self):
-        global end_time
         while True:
             self.clock.tick(self.fps)
             for event in pg.event.get():
                 if event.type == pg.QUIT or pg.key.get_pressed()[pg.K_ESCAPE]:
-                    print('YOU SURVIVED FOR ', end_time - start_time, 'SECONDS')
                     pg.quit()
-                    sys.exit()
-                     
+                    sys.exit()    
             self.screen.fill('darkgrey')
             self.logic.run()
 
         #Changes the level that is loaded
             if self.atBase == True:
-                self.switchToOne = self.logic.levelSetOne()
-                self.switchToTwo = self.logic.levelSetTwo()
-                self.switchToThree = self.logic.levelSetThree()
-                if self.switchToOne == True:
-                    self.logic = LevelOneLogic()
+                self.switchTo = self.logic.levelSet()
+                if self.switchTo == 1:
+                    self.logic = Logic(1)
                     self.atBase = False
-                if self.switchToTwo == True:
-                    self.logic = LevelTwoLogic()
+                elif self.switchTo == 2:
+                    self.logic = Logic(2)
                     self.atBase = False
-                if self.switchToThree == True:
-                    self.logic = LevelThreeLogic()
+                elif self.switchTo == 3:
+                    self.logic = Logic(3)
                     self.atBase = False
-            if self.atBase == False:
-                self.returnToBase = self.logic.returnToBase()
-                if self.returnToBase == True:
-                    self.logic = BaseLogic()
-                    self.atBase = True
-
-
+    
             if pg.key.get_pressed()[pg.K_LSHIFT]:
                 self.fps = 20
             else: self.fps = 60
